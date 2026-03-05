@@ -1,49 +1,137 @@
-# Section 0: Mathematical Foundations
+```python
+import numpy as np
+
+# Vector Algebra
+a = np.array([2, 1, -3])
+b = np.array([4, -2, 1])
+
+# a) Magnitudes
+mag_a = np.linalg.norm(a)
+mag_b = np.linalg.norm(b)
+
+# b) Dot product
+dot_product = np.dot(a, b)
+
+# c) Cross product
+cross_product = np.cross(a, b)
+
+# d) Angle
+cos_theta = dot_product / (mag_a * mag_b)
+angle_rad = np.arccos(cos_theta)
+angle_deg = np.degrees(angle_rad)
+
+# System of Equations
+# 2x + 3y = 12
+# 1x - 1y = 1
+coeff_matrix = np.array([[2, 3], [1, -1]])
+const_matrix = np.array([12, 1])
+solution = np.linalg.solve(coeff_matrix, const_matrix)
+
+print(f"{mag_a=}")
+print(f"{mag_b=}")
+print(f"{dot_product=}")
+print(f"{cross_product=}")
+print(f"{angle_rad=}")
+print(f"{angle_deg=}")
+print(f"{solution=}")
+
+
+
+```
+
+```text
+mag_a=3.7416573867739413
+mag_b=4.58257569495584
+dot_product=3
+cross_product=array([ -5, -14,  -8])
+angle_rad=1.3949275767021716
+angle_deg=79.92346287144585
+solution=array([3., 2.])
+
+
+```
 
 ## 1. Vector Algebra
 
-Given two vectors in 3D space: $\vec{a} = [2, 1, -3]$ and $\vec{b} = [4, -2, 1]$. Calculate:
+Given vectors: $\vec{a} = [2, 1, -3]$ and $\vec{b} = [4, -2, 1]$.
 
-a) The magnitude of each vector.
+### a) Magnitude of each vector
 
-b) The dot product $\vec{a} \cdot \vec{b}$.
+The magnitude of a vector $\vec{v} = [x, y, z]$ is calculated as $|\vec{v}| = \sqrt{x^2 + y^2 + z^2}$.
 
-c) The cross product $\vec{a} \times \vec{b}$.
+* **Magnitude of $\vec{a}$:**
 
-d) The angle between vectors $\vec{a}$ and $\vec{b}$.
+$$|\vec{a}| = \sqrt{2^2 + 1^2 + (-3)^2} = \sqrt{4 + 1 + 9} = \sqrt{14} \approx 3.7417$$
+
+
+* **Magnitude of $\vec{b}$:**
+
+$$|\vec{b}| = \sqrt{4^2 + (-2)^2 + 1^2} = \sqrt{16 + 4 + 1} = \sqrt{21} \approx 4.5826$$
+
+
+
+### b) Dot product $\vec{a} \cdot \vec{b}$
+
+The dot product is calculated as $\vec{a} \cdot \vec{b} = a_x b_x + a_y b_y + a_z b_z$.
+
+$$\vec{a} \cdot \vec{b} = (2 \times 4) + (1 \times -2) + (-3 \times 1)$$
+
+$$\vec{a} \cdot \vec{b} = 8 - 2 - 3 = 3$$
+
+### c) Cross product $\vec{a} \times \vec{b}$
+
+The cross product is calculated using the determinant of a matrix:
+
+
+$$\vec{a} \times \vec{b} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ 2 & 1 & -3 \\ 4 & -2 & 1 \end{vmatrix}$$
+
+$$\vec{a} \times \vec{b} = [(1)(1) - (-3)(-2)]\mathbf{i} - [(2)(1) - (-3)(4)]\mathbf{j} + [(2)(-2) - (1)(4)]\mathbf{k}$$
+
+$$\vec{a} \times \vec{b} = [1 - 6]\mathbf{i} - [2 + 12]\mathbf{j} + [-4 - 4]\mathbf{k}$$
+
+$$\vec{a} \times \vec{b} = [-5, -14, -8]$$
+
+### d) Angle between vectors $\vec{a}$ and $\vec{b}$
+
+The angle $\theta$ is found using the formula $\cos(\theta) = \frac{\vec{a} \cdot \vec{b}}{|\vec{a}| |\vec{b}|}$.
+
+$$\cos(\theta) = \frac{3}{\sqrt{14} \cdot \sqrt{21}} = \frac{3}{\sqrt{294}} \approx 0.17496$$
+
+$$\theta = \arccos(0.17496) \approx 1.3949 \text{ radians or } 79.92^\circ$$
+
+---
 
 ## 2. Systems of Equations
 
-Find the values of $x$ and $y$ that satisfy both equations: $2x + 3y = 12$ and $x - y = 1$.
+Solve the system:
 
-## 3. Proportionality
+1. $2x + 3y = 12$
+2. $x - y = 1$
 
-Consider the Universal Law of Gravitation: $F = G \frac{m_1 m_2}{r^2}$, where $F$ is the gravitational force between two masses $m_1$ and $m_2$, $r$ is the distance between their centers, and $G$ is the gravitational constant. Determine the factor by which the force $F$ changes if the distance $r$ is *doubled* and both masses ($m_1$ and $m_2$) are *halved*.
+**Step 1: Express $x$ in terms of $y$ using equation (2):**
 
-## 4. Rearranging Formulas
 
-The formula for the period of a simple pendulum is $T = 2\pi \sqrt{\frac{L}{g}}$. Rearrange the equation give a formula for $g$ (acceleration due to gravity).
+$$x = y + 1$$
 
-## 5. Trigonometry
+**Step 2: Substitute $x$ into equation (1):**
 
-A vector $\vec{A}$ has a magnitude of $15$ and makes an angle of $\theta = 60^\circ$ with the horizontal axis. Calculate its horizontal and vertical components.
 
-## 6. Function Analysis
+$$2(y + 1) + 3y = 12$$
 
-Consider the function $f(x) = 3x^2 - 12x + 7$. Identify any local maxima or minima.
+$$2y + 2 + 3y = 12$$
 
-## 7. Logic & Series
+$$5y + 2 = 12$$
 
-A bicycle is 10 meters from a wall and moves towards it at a constant speed of $1\text{ m/s}$. A fly starts from the bicycle's front wheel and flies towards the wall at $2\text{ m/s}$. When it hits the wall, it instantly turns back and flies to the bicycle, and so on. What is the total distance the fly travels before being crushed?
+$$5y = 10$$
 
-## 8. Definite Integrals
+$$y = 2$$
 
-Calculate the area under the curve of the function $f(x) = \sin(x)$ from $x=0$ to $x=\pi$.
+**Step 3: Solve for $x$:**
 
-## 9. Optimization Problem
 
-A rectangle is under the curve $y = 3 - x^2$ in the first quadrant. What are the dimensions of the rectangle with the maximum area?
+$$x = 2 + 1 = 3$$
 
-## 10. Infinite Series
+**Solution:**
 
-Determine the final position of an ant that starts at the origin and moves according to the following pattern: 1 m east, 1/2 m north, 1/3 m west, 1/4 m south, 1/5 m east, and so on.
+
+$$x = 3, y = 2$$
