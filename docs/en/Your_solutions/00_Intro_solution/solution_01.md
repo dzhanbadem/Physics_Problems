@@ -96,4 +96,3 @@ $$(x, y) = (3, 2)$$
 
 ---
 
-Everything looks mathematically sound! Would you like me to show you how to solve this system using **Cramer's Rule** or **Matrix Inversion** instead?
