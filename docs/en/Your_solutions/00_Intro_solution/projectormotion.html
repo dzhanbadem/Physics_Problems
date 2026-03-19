@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            touch-action: manipulation;
+        }
+        canvas {
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F2FE 100%);
+            border-bottom: 4px solid #3f6212;
+            cursor: crosshair;
+        }
+        .control-panel {
+            box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white p-4 flex justify-between items-center shrink-0">
+        <h1 class="text-xl font-bold">Projectile Motion</h1>
+        <div class="flex gap-4 text-sm">
+            <div id="stats-distance">Distance: 0m</div>
+            <div id="stats-height">Height: 0m</div>
+        </div>
+    </header>
+
+    <!-- Simulation Area -->
+    <main class="relative flex-grow bg-blue-50 overflow-hidden" id="canvas-container">
+        <canvas id="simCanvas"></canvas>
+        
+        <!-- On-screen UI Overlay -->
+        <div class="absolute top-4 left-4 flex flex-col gap-2 pointer-events-none">
+            <div class="bg-white/80 backdrop-blur-sm p-3 rounded-lg border border-slate-200 shadow-sm pointer-events-auto">
+                <div class="mb-2">
+                    <label class="block text-xs font-bold text-slate-600 uppercase">Velocity: <span id="v-val">50</span> m/s</label>
+                    <input type="range" id="velocity" min="10" max="100" value="50" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase">Angle: <span id="a-val">45</span>°</label>
+                    <input type="range" id="angle" min="0" max="90" value="45" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Controls footer -->
+    <footer class="bg-white p-4 control-panel shrink-0 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto flex items-center justify-center gap-4">
+            <button id="launchBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-all active:scale-95 shadow-lg">
+                LAUNCH
+            </button>
+            <button id="resetBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-8 rounded-full transition-all">
+                RESET
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvas-container');
+        
+        // UI Elements
+        const velocityInput = document.getElementById('velocity');
+        const angleInput = document.getElementById('angle');
+        const vValText = document.getElementById('v-val');
+        const aValText = document.getElementById('a-val');
+        const launchBtn = document.getElementById('launchBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const distDisplay = document.getElementById('stats-distance');
+        const heightDisplay = document.getElementById('stats-height');
+
+        // Physics Constants
+        const G = 9.81;
+        const SCALE = 5; // pixels per meter
+        
+        let animationId;
+        let startTime = null;
+        let isRunning = false;
+        let trajectory = [];
+        let currentProjectile = {
+            x: 0,
+            y: 0,
+            v0: 50,
+            angle: 45,
+            time: 0
+        };
+
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawScene();
+        }
+
+        window.addEventListener('resize', resize);
+        window.onload = resize;
+
+        // Input listeners
+        velocityInput.oninput = () => {
+            vValText.textContent = velocityInput.value;
+            if (!isRunning) drawScene();
+        };
+        angleInput.oninput = () => {
+            aValText.textContent = angleInput.value;
+            if (!isRunning) drawScene();
+        };
+
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const groundY = canvas.height - 20;
+            const startX = 50;
+            
+            // Draw Ground Decoration
+            ctx.fillStyle = '#166534';
+            ctx.fillRect(0, groundY, canvas.width, 20);
+
+            // Draw Launcher (Static when not running)
+            const angleRad = (angleInput.value * Math.PI) / 180;
+            const gunLength = 40;
+            
+            ctx.beginPath();
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.moveTo(startX, groundY);
+            ctx.lineTo(startX + Math.cos(angleRad) * gunLength, groundY - Math.sin(angleRad) * gunLength);
+            ctx.stroke();
+
+            // Draw Trajectory Path
+            if (trajectory.length > 1) {
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.moveTo(trajectory[0].px, trajectory[0].py);
+                for (let point of trajectory) {
+                    ctx.lineTo(point.px, point.py);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw Projectile
+            if (isRunning) {
+                const px = startX + currentProjectile.x * SCALE;
+                const py = groundY - currentProjectile.y * SCALE;
+                
+                // Ball
+                ctx.beginPath();
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        function update(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const elapsed = (timestamp - startTime) / 1000; // Seconds
+            
+            const v0 = parseFloat(velocityInput.value);
+            const theta = (parseFloat(angleInput.value) * Math.PI) / 180;
+            
+            // Basic kinematic equations
+            const x = v0 * Math.cos(theta) * elapsed;
+            const y = (v0 * Math.sin(theta) * elapsed) - (0.5 * G * Math.pow(elapsed, 2));
+            
+            const groundY = canvas.height - 20;
+            const startX = 50;
+
+            if (y < 0 && elapsed > 0.1) {
+                isRunning = false;
+                cancelAnimationFrame(animationId);
+                return;
+            }
+
+            currentProjectile.x = x;
+            currentProjectile.y = y;
+            
+            // Store path
+            trajectory.push({
+                px: startX + x * SCALE,
+                py: groundY - y * SCALE
+            });
+
+            // Update UI
+            distDisplay.textContent = `Distance: ${x.toFixed(1)}m`;
+            heightDisplay.textContent = `Height: ${Math.max(0, y).toFixed(1)}m`;
+
+            drawScene();
+            animationId = requestAnimationFrame(update);
+        }
+
+        launchBtn.onclick = () => {
+            if (isRunning) return;
+            
+            trajectory = [];
+            startTime = null;
+            isRunning = true;
+            animationId = requestAnimationFrame(update);
+        };
+
+        resetBtn.onclick = () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            trajectory = [];
+            currentProjectile = { x: 0, y: 0 };
+            distDisplay.textContent = `Distance: 0m`;
+            heightDisplay.textContent = `Height: 0m`;
+            drawScene();
+        };
+
+    </script>
+</body>
+</html>
